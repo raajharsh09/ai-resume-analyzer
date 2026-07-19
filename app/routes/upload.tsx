@@ -51,10 +51,6 @@ const Upload = () => {
             prepareInstructions({ jobTitle, jobDescription })
         );
 
-        console.log("========== FEEDBACK ==========");
-        console.dir(feedback, { depth: null });
-        console.log("JSON:", JSON.stringify(feedback, null, 2));
-
         if (!feedback) {
             return setStatusText("Error: Failed to analyze resume");
         }
@@ -62,10 +58,13 @@ const Upload = () => {
         const feedbackText =
             typeof feedback.message.content === "string"
                 ? feedback.message.content
-                : feedback.message.content[0].text;
+                : feedback.message.content.find(
+                (item: any) => item.type === "text"
+            )?.text ?? "";
 
-        console.log("========== FEEDBACK TEXT ==========");
-        console.log(feedbackText);
+        if (!feedbackText) {
+            throw new Error("AI returned no text response.");
+        }
 
         data.feedback = JSON.parse(feedbackText);
         await kv.set(`resume:${uuid}`, JSON.stringify(data));
